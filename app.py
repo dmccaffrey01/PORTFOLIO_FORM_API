@@ -12,6 +12,9 @@ cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
 @app.route('/')
 def index():
+    smtp_username = os.environ.get('SMTP_USERNAME')
+    smtp_password = os.environ.get('SMTP_PASSWORD')
+    print(smtp_username, smtp_password)
     return send_from_directory('static', 'index.html')
 
 @app.route('/submit', methods=['POST'])
