@@ -8,7 +8,12 @@ load_dotenv()
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
-print("4")
+
+
+@app.route('/')
+def index():
+    return send_from_directory('static', 'index.html')
+
 @app.route('/submit', methods=['POST'])
 def handle_form_submission():
     name = request.form.get('name')
@@ -34,5 +39,7 @@ def handle_form_submission():
     
     server.quit()
 
+    return "Message sent sucessfully!"
+
 if __name__ == '__main__':
-    app.run(port=int(os.environ.get('PORT', 5000)))
+    app.run(port=int(os.environ.get('PORT', 8000)))
