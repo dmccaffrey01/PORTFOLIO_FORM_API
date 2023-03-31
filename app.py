@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, send_from_directory
 import smtplib
 import os
 from dotenv import load_dotenv
