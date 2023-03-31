@@ -2,9 +2,12 @@ from flask import Flask, request
 import smtplib
 import os
 from dotenv import load_dotenv
+from flask_cors import CORS
+
 load_dotenv()
 
 app = Flask(__name__)
+cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
 @app.route('/submit', methods=['POST'])
 def handle_form_submission():
