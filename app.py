@@ -1,6 +1,6 @@
 from flask import Flask, request, send_from_directory
-import smtplib
 import os
+import requests
 from dotenv import load_dotenv
 from flask_cors import CORS
 
@@ -10,39 +10,57 @@ app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    smtp_username = os.environ.get('SMTP_USERNAME')
-    smtp_password = os.environ.get('SMTP_PASSWORD')
-    print(smtp_username, smtp_password)
     return send_from_directory('static', 'index.html')
+
 
 @app.route('/submit', methods=['POST'])
 def handle_form_submission():
     name = request.form.get('name')
     email = request.form.get('email')
     message = request.form.get('message')
-    
-    smtp_server = 'smtp.gmail.com'
-    smtp_port = 587
-    smtp_username = os.environ.get('SMTP_USERNAME')
-    smtp_password = os.environ.get('SMTP_PASSWORD')
-    
-    from_address = smtp_username
-    to_address = 'dmccaffrey01@gmail.com'
+
+    sendgrid_api_key = os.environ.get('SENDGRID_API_KEY')
+    from_email = os.environ.get('FROM_EMAIL')
+    to_email = os.environ.get('TO_EMAIL')
     subject = 'New message from your website!'
     body = f'Name: {name}\nEmail: {email}\n\n{message}'
 
-    server = smtplib.SMTP(smtp_server, smtp_port)
-    server.starttls()
-    server.login(smtp_username, smtp_password)
+    headers = {
+        'Authorization': f'Bearer {sendgrid_api_key}',
+        'Content-Type': 'application/json'
+    }
 
-    message = f'Subject: {subject}\n\n{body}'
-    server.sendmail(from_address, to_address, message)
-    
-    server.quit()
+    data = {
+        "personalizations": [
+            {
+                "to": [
+                    {
+                        "email": to_email
+                    }
+                ],
+                "subject": subject
+            }
+        ],
+        "from": {
+            "email": from_email
+        },
+        "content": [
+            {
+                "type": "text/plain",
+                "value": body
+            }
+        ]
+    }
 
-    return "Message sent sucessfully!"
+    response = requests.post('https://api.sendgrid.com/v3/mail/send', json=data, headers=headers)
+
+    if response.status_code == 202:
+        return "Message sent successfully!"
+    else:
+        return f"Error sending message: {response.text}"
+
 
 if __name__ == '__main__':
     app.run(port=int(os.environ.get('PORT', 8000)))
